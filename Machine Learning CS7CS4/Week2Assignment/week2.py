@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.svm import LinearSVC
+from collections import Counter
 
 
 #load data
@@ -16,7 +17,7 @@ y=df.iloc[:, 2]
 
 #-----PART A-----
 #part a(i)
-
+print("part a(i)")
 #plot: 
 # x axis: be the value of the first feature
 # y-axis the value of the second feature
@@ -36,6 +37,7 @@ plt.savefig('a(i)_plot.png')
 #plt.show()
 
 #part a(ii)
+print("part a(ii)")
 #train logistic regression model
 lr = LogisticRegression()
 lr.fit(x, y)
@@ -46,6 +48,7 @@ print("Coefficients (theta1, theta2):", lr.coef_)
 
 
 #part a(iii)
+print("part a(iii)")
 #predict target values, show desicion boundary
 
 #predict on training data
@@ -80,6 +83,7 @@ plt.savefig('a(iii)_plot.png')
 #plt.show()
 
 #part a(iv)
+print("part a(iv)")
 acc = accuracy_score(y, y_pred)
 print("Training accuracy:", acc)
 
@@ -87,6 +91,7 @@ print()
 
 #-----PART B-----
 #part b(i)
+print("part b(i)")
 #train linear SVM model at various C values 
 C_values = [0.001, 1, 100]
 svm_models = {}
@@ -100,6 +105,7 @@ for C in C_values:
     print()
 
 #part b(ii)
+print("part b(ii)")
 #use each of these trained classifiers to predict the target values in the training
 #data. Plot these predictions and the actual target values from the data, together
 #with the classifier decision boundary.
@@ -141,6 +147,7 @@ for C in C_values:
 
 #-----PART C-----
 #part c(i)
+print("part c(i)")
 #add square of each feature
 #train classifier
 
@@ -155,6 +162,7 @@ print("Intercept (theta0):", lr_q.intercept_)
 print("Coefficients (theta1, theta2, theta3, theta4):", lr_q.coef_)
 
 #part c(ii)
+print("part c(ii)")
 #predict target values
 y_pred_q = lr_q.predict(x_q)
 plt.figure(figsize=(8, 6))
@@ -171,7 +179,54 @@ plt.title('c(ii) Logistic Regression with Polynomial Features Predictions, with 
 plt.legend()
 plt.savefig('c(ii)_plot.png')
 #comment out for testing purposes
-plt.show()
+#plt.show()
 
 acc_q = accuracy_score(y, y_pred_q)
 print("Training accuracy with polynomial features:", acc_q) 
+
+
+#part c(iii)
+print("part c(iii)")
+#compare against reasonable baseline predictor 
+most_common_class = Counter(y).most_common(1)[0][0]
+baseline_predictions = np.full_like(y, most_common_class)
+baseline_accuracy = accuracy_score(y, baseline_predictions)
+print("Baseline accuracy (predicting the most common class):", baseline_accuracy)
+print("Most common class:", most_common_class)
+
+#part c(iv)
+print("part c(iv)")
+#bonus: plot classifier desicion boundary as quadratic curve
+theta0_q = lr_q.intercept_[0]
+theta1_q = lr_q.coef_[0][0]
+theta2_q = lr_q.coef_[0][1]
+theta3_q = lr_q.coef_[0][2]
+theta4_q = lr_q.coef_[0][3]
+
+x1_range = np.linspace(x1.min(), x1.max(), 500)
+x2_range_q = np.zeros_like(x1_range)
+
+a = theta4_q
+b = theta2_q
+c = theta0_q + theta1_q * x1_range + theta3_q * x1_range**2
+discriminant = b**2 - 4*a*c
+is_valid = discriminant >= 0
+x1_is_valid = x1_range[is_valid]
+discriminant_is_valid = discriminant[is_valid]
+x2_upper = (-b + np.sqrt(discriminant_is_valid)) / (2*a)
+x2_lower = (-b - np.sqrt(discriminant_is_valid)) / (2*a)
+
+plt.figure(figsize=(8, 6))
+#actual
+plt.scatter(x1[y==1], x2[y==1], marker='+', color='blue', label='target = +1')
+plt.scatter(x1[y==-1], x2[y==-1], marker='o', color='green', label='target = -1')
+
+plt.plot(x1_is_valid, x2_upper, color='black', linewidth=2, label='Decision Boundary (upper)')
+plt.plot(x1_is_valid, x2_lower, color='black', linewidth=2, label='Decision Boundary (lower)')
+plt.xlabel('x1')
+plt.ylabel('x2')
+plt.title('c(iv) Logistic Regression with Polynomial Features Decision Boundary')
+plt.legend()
+plt.savefig('c(iv)_plot.png')  
+#comment out for testing purposes
+plt.show()
