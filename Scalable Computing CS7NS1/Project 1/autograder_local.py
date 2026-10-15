@@ -243,7 +243,8 @@ def main():
     print(f"TOTAL: {results['total_points_awarded']} / {MAX_POINTS}")
     for t in testcases:
         print(f"  [{t['points_awarded']:>2}/{t['points_available']:>2}] "
-              f"{t['test_name']}  {t['message'][:90]}")
+              #f"{t['test_name']}  {t['message'][:90]}")
+              f"{t['test_name']}  {t['message']}")
 
     if args.csv:
         username = args.username or args.submission.rsplit("/", 1)[-1].split(".")[0]

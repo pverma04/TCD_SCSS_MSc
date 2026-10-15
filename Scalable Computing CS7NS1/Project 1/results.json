@@ -1,5 +1,5 @@
 {
-  "total_points_awarded": 30,
+  "total_points_awarded": 100,
   "total_points_available": 100,
   "testcases": [
     {
@@ -16,99 +16,99 @@
     },
     {
       "test_name": "T3 ghz n=2",
-      "points_awarded": 0,
+      "points_awarded": 3,
       "points_available": 3,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 108, in grade_t3\n    qc = mod.ghz_circuit(n)\n         ^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'ghz_circuit'\n"
+      "message": "fidelity=1.000000"
     },
     {
       "test_name": "T3 ghz n=3",
-      "points_awarded": 0,
+      "points_awarded": 3,
       "points_available": 3,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 108, in grade_t3\n    qc = mod.ghz_circuit(n)\n         ^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'ghz_circuit'\n"
+      "message": "fidelity=1.000000"
     },
     {
       "test_name": "T3 ghz n=5",
-      "points_awarded": 0,
+      "points_awarded": 3,
       "points_available": 3,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 108, in grade_t3\n    qc = mod.ghz_circuit(n)\n         ^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'ghz_circuit'\n"
+      "message": "fidelity=1.000000"
     },
     {
       "test_name": "T3 ghz n=8",
-      "points_awarded": 0,
+      "points_awarded": 3,
       "points_available": 3,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 108, in grade_t3\n    qc = mod.ghz_circuit(n)\n         ^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'ghz_circuit'\n"
+      "message": "fidelity=1.000000"
     },
     {
       "test_name": "T3 depth bound",
-      "points_awarded": 0,
+      "points_awarded": 3,
       "points_available": 3,
       "message": ""
     },
     {
       "test_name": "T4 teleport theta=0.4,phi=0.0",
-      "points_awarded": 0,
+      "points_awarded": 5,
       "points_available": 5,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 134, in grade_t4\n    qc = mod.teleport_circuit(theta, phi)\n         ^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'teleport_circuit'\n"
+      "message": "fidelity=1.000000"
     },
     {
       "test_name": "T4 teleport theta=1.1,phi=0.7",
-      "points_awarded": 0,
+      "points_awarded": 5,
       "points_available": 5,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 134, in grade_t4\n    qc = mod.teleport_circuit(theta, phi)\n         ^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'teleport_circuit'\n"
+      "message": "fidelity=1.000000"
     },
     {
       "test_name": "T4 teleport theta=2.2,phi=2.9",
-      "points_awarded": 0,
+      "points_awarded": 5,
       "points_available": 5,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 134, in grade_t4\n    qc = mod.teleport_circuit(theta, phi)\n         ^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'teleport_circuit'\n"
+      "message": "fidelity=1.000000"
     },
     {
       "test_name": "T4 teleport theta=2.7,phi=4.0",
-      "points_awarded": 0,
+      "points_awarded": 5,
       "points_available": 5,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 134, in grade_t4\n    qc = mod.teleport_circuit(theta, phi)\n         ^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'teleport_circuit'\n"
+      "message": "fidelity=1.000000"
     },
     {
       "test_name": "T4 structural checks",
-      "points_awarded": 0,
+      "points_awarded": 5,
       "points_available": 5,
       "message": ""
     },
     {
       "test_name": "T5 repetition p=0.01",
-      "points_awarded": 0,
+      "points_awarded": 4,
       "points_available": 4,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 175, in grade_t5\n    val = float(mod.repetition_logical_error_rate(p, shots))\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'repetition_logical_error_rate'\n"
+      "message": "value=0.00040 theory=0.00030 tol=0.00237"
     },
     {
       "test_name": "T5 repetition p=0.05",
-      "points_awarded": 0,
+      "points_awarded": 4,
       "points_available": 4,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 175, in grade_t5\n    val = float(mod.repetition_logical_error_rate(p, shots))\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'repetition_logical_error_rate'\n"
+      "message": "value=0.00745 theory=0.00725 tol=0.00380"
     },
     {
       "test_name": "T5 repetition p=0.1",
-      "points_awarded": 0,
+      "points_awarded": 4,
       "points_available": 4,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 175, in grade_t5\n    val = float(mod.repetition_logical_error_rate(p, shots))\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'repetition_logical_error_rate'\n"
+      "message": "value=0.02825 theory=0.02800 tol=0.00550"
     },
     {
       "test_name": "T5 repetition p=0.2",
-      "points_awarded": 0,
+      "points_awarded": 4,
       "points_available": 4,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 175, in grade_t5\n    val = float(mod.repetition_logical_error_rate(p, shots))\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'repetition_logical_error_rate'\n"
+      "message": "value=0.10760 theory=0.10400 tol=0.00848"
     },
     {
       "test_name": "T5 edge p=0.5",
-      "points_awarded": 0,
+      "points_awarded": 4,
       "points_available": 4,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 187, in grade_t5\n    val = float(mod.repetition_logical_error_rate(0.5, shots))\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'repetition_logical_error_rate'\n"
+      "message": "value=0.50970, expected 0.5 +/- 0.03"
     },
     {
       "test_name": "T6 design_challenge",
-      "points_awarded": 0,
+      "points_awarded": 10,
       "points_available": 10,
-      "message": "Traceback (most recent call last):\n  File \"/Users/parthverma/SCSS TCD/Scalable Computing CS7NS1/Project 1/autograder_local.py\", line 198, in grade_t6\n    qc = mod.design_challenge()\n         ^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'submission' has no attribute 'design_challenge'\n"
+      "message": "fidelity=1.000000 size=5"
     }
   ]
 }
