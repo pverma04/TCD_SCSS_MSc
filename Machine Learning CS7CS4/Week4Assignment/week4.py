@@ -5,6 +5,8 @@ from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val
 from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+
 
 
 #-------PART I-------
@@ -111,5 +113,61 @@ plt.title('Dataset 1: Logistic Regression Predictions')
 plt.legend()
 plt.tight_layout()
 plt.savefig('i_a_predictions.png', dpi=300)
+plt.show()
+
+#part i(b)
+print("Part i(b)")
+
+k_values = range(1, 51)
+means, stds = [], []
+for k in k_values:
+    model = make_pipeline(
+        StandardScaler(),
+        KNeighborsClassifier(n_neighbors=k)
+    )
+    scores = cross_val_score(model, X_train, y_train, cv=skf, scoring='accuracy')
+    means.append(scores.mean())
+    stds.append(scores.std())
+best_index = np.argmax(means)
+best_k = k_values[best_index]
+print("Best k value:", best_k)
+print("Best CV accuracy:", means[best_index])
+print("CV standard deviation:", stds[best_index])
+
+#cross validation accuracy plot
+plt.figure(figsize=(8, 6))
+plt.errorbar(k_values, means, yerr=stds, fmt='o-', capsize=3, markersize=4, label='kNN')
+plt.axhline(baseline, color='black', linestyle='--', label='Majority baseline')
+
+plt.xlabel('Number of neighbors (k)')
+plt.ylabel('CV accuracy (5-fold)')
+plt.title('Dataset 1: kNN Cross-Validation')
+plt.legend()
+plt.tight_layout()
+plt.savefig('i_b_cv.png', dpi=300)
+plt.show()
+
+#final kNN model
+knn_model = make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=best_k))
+knn_model.fit(X_train, y_train)
+
+print("kNN training accuracy:", knn_model.score(X_train, y_train))
+print("kNN test accuracy:", knn_model.score(X_test, y_test))
+print("Predicted class counts:", np.unique(knn_model.predict(X_test), return_counts=True))
+
+#kNN predictions plot
+predictions_knn = knn_model.predict(grid).reshape(xx.shape)
+
+plt.figure(figsize=(8, 6))
+plt.contourf(xx, yy, predictions_knn, levels=[-1.5, 0, 1.5], alpha=0.25)
+plt.scatter(X_train[y_train == 1, 0], X_train[y_train == 1, 1], marker='+', color='blue', label='Actual +1')
+plt.scatter(X_train[y_train == -1, 0], X_train[y_train == -1, 1], marker='o', color='red', label='Actual -1')
+
+plt.xlabel('x1')
+plt.ylabel('x2')
+plt.title(f'Dataset 1: kNN Predictions (k={best_k})')
+plt.legend()
+plt.tight_layout()
+plt.savefig('i_b_predictions.png', dpi=300)
 plt.show()
 
