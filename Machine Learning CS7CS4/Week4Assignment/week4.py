@@ -8,6 +8,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.dummy import DummyClassifier
+from sklearn.metrics import roc_curve, roc_auc_score
 
 
 
@@ -208,3 +209,43 @@ for i in range(3):
 plt.tight_layout()
 plt.savefig('i_c_confusion_matrices.png', dpi=300)
 #plt.show()
+
+#part i(d)
+print("Part i(d)")
+
+#ROC
+plt.figure(figsize=(8, 6))
+
+#Log Reg 
+log_prob = log_model.predict_proba(X_test)[:, 1]
+log_fpr, log_tpr, _ = roc_curve(y_test, log_prob, pos_label=1)
+log_auc = roc_auc_score(y_test, log_prob)
+plt.plot(log_fpr, log_tpr, label=f'Logistic Regression (AUC={log_auc:.3f})')
+
+#kNN
+knn_prob = knn_model.predict_proba(X_test)[:, 1]
+knn_fpr, knn_tpr, _ = roc_curve(y_test, knn_prob, pos_label=1)
+knn_auc = roc_auc_score(y_test, knn_prob)
+plt.plot(knn_fpr, knn_tpr, label=f'kNN (AUC={knn_auc:.3f})')
+
+#majority baseline
+tn, fp, fn, tp = baseline_cm.ravel()
+baseline_fpr = fp / (fp + tn)
+baseline_tpr = tp / (tp + fn)
+
+plt.scatter(baseline_fpr, baseline_tpr, marker='x', s=100, color='red', label='Majority baseline')
+
+#random classifier ref
+plt.plot([0, 1], [0, 1], 'k--', label='Random classifier')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Dataset 1: ROC Curves')
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.savefig('i_d_roc.png', dpi=300)
+plt.show()
+
+print("Logistic Regression AUC:", log_auc)
+print("kNN AUC:", knn_auc)
+print("Majority baseline ROC point:", (baseline_fpr, baseline_tpr))
