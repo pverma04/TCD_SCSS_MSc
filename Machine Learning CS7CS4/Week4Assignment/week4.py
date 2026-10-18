@@ -6,6 +6,9 @@ from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.dummy import DummyClassifier
+
 
 
 
@@ -31,7 +34,7 @@ plt.title('Dataset 1: training data')
 plt.legend()
 plt.tight_layout()
 plt.savefig('dataset1.png', dpi=300)
-plt.show()
+#plt.show()
 
 #part i(a)
 print("Part i(a)")
@@ -69,7 +72,7 @@ plt.title("Logistic regression: CV accuracy vs C")
 plt.legend(loc='upper left', bbox_to_anchor=(1.02, 1))
 plt.tight_layout()
 plt.savefig("i_a_cv.png", dpi=150)
-plt.show()    
+#plt.show()    
 
 log_model = make_pipeline(
     PolynomialFeatures(degree=1, include_bias=False),
@@ -113,7 +116,7 @@ plt.title('Dataset 1: Logistic Regression Predictions')
 plt.legend()
 plt.tight_layout()
 plt.savefig('i_a_predictions.png', dpi=300)
-plt.show()
+#plt.show()
 
 #part i(b)
 print("Part i(b)")
@@ -145,7 +148,7 @@ plt.title('Dataset 1: kNN Cross-Validation')
 plt.legend()
 plt.tight_layout()
 plt.savefig('i_b_cv.png', dpi=300)
-plt.show()
+#plt.show()
 
 #final kNN model
 knn_model = make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=best_k))
@@ -169,5 +172,39 @@ plt.title(f'Dataset 1: kNN Predictions (k={best_k})')
 plt.legend()
 plt.tight_layout()
 plt.savefig('i_b_predictions.png', dpi=300)
-plt.show()
+#plt.show()
 
+#part i(c)
+print("Part i(c)")
+
+#baseline
+baseline_model = DummyClassifier(strategy='most_frequent')
+baseline_model.fit(X_train, y_train)
+
+#predictions
+log_pred = log_model.predict(X_test)
+knn_pred = knn_model.predict(X_test)
+baseline_pred = baseline_model.predict(X_test)
+
+#confusion matrices
+log_cm = confusion_matrix(y_test, log_pred, labels=[-1, 1])
+knn_cm = confusion_matrix(y_test, knn_pred, labels=[-1, 1])
+baseline_cm = confusion_matrix(y_test, baseline_pred, labels=[-1, 1])
+
+print("Logistic Regression:" + str(log_cm))
+print("kNN:" + str(knn_cm))
+print("Majority Baseline:" + str(baseline_cm))
+
+#plot confusion 
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+matrices = [log_cm, knn_cm, baseline_cm]
+titles = ['Logistic Regression', 'kNN', 'Majority Baseline']
+
+for i in range(3):
+    disp = ConfusionMatrixDisplay(confusion_matrix = matrices[i], display_labels = [-1, 1])
+    disp.plot(ax = axes[i], colorbar = False)
+    axes[i].set_title(titles[i])
+
+plt.tight_layout()
+plt.savefig('i_c_confusion_matrices.png', dpi=300)
+#plt.show()
