@@ -115,7 +115,7 @@ print(Q[s, a])
 #check alpha
 Q2 = np.zeros((20, 4))
 update_Q(Q2, s, a, r, s_next, alpha=0.5, gamma=1.0)
-print(Q2[s, a])   # should print -0.5, half the full update
+print(Q2[s, a]) #should print -0.5, half the full update
 
 #check training
 Q_trained = train(env, num_eps=1000, alpha=0.1, gamma=0.9, epsilon=0.1, max_steps=100)

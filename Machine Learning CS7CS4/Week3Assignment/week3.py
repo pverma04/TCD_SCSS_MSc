@@ -6,6 +6,8 @@ from sklearn.linear_model import Lasso
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
 from sklearn.linear_model import Ridge
+from sklearn.model_selection import KFold, cross_val_score
+
 
 
 
@@ -88,7 +90,9 @@ for C in C_plot:
     ax.legend(handles=[Patch(color='orange', alpha=0.5, label='predictions'),
                        Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', label='training data')])
     plt.savefig(f"i_c_lasso_C{C}.png", dpi=150)
-    plt.show()
+    #plt.show()
+print("Lasso non-zero:", {C: int(np.sum(lasso_models[C].coef_ != 0)) for C in C_values})
+print("Lasso sum |w|:", {C: round(float(np.sum(np.abs(lasso_models[C].coef_))), 3) for C in C_values})
 
 
 #part i(d)
@@ -128,4 +132,65 @@ for C in [0.01, 1, 100, 1000]:
     ax.legend(handles=[Patch(color='orange', alpha=0.3, label='predictions'),
                        Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', label='training data')])
     plt.savefig(f"i_e_ridge_C{C}.png", dpi=150)
-    plt.show()
+    #plt.show()
+
+
+#-----------Part ii-----------
+
+#part ii(a)
+print("ii(a)")
+
+kf = KFold(n_splits=5, shuffle=True, random_state=0)
+C_cv = np.logspace(-1, 3, 20)   # 0.1 to 1000
+cv_mean, cv_std = [], []
+for C in C_cv:
+    model = Lasso(alpha=1 / (2 * C), max_iter=100000)
+    scores = cross_val_score(model, X_poly, y, cv=kf, scoring='neg_mean_squared_error')
+    mse = -scores
+    cv_mean.append(mse.mean())
+    cv_std.append(mse.std())
+
+plt.figure(figsize=(8, 6))
+plt.errorbar(C_cv, cv_mean, yerr=cv_std, fmt='o-', capsize=4)
+plt.xscale('log')
+plt.xlabel("C")
+plt.ylabel("mean square error (5-fold CV)")
+plt.title("ii(a): Lasso: cross-validated error vs C")
+plt.savefig("ii_a_lasso_cv.png", dpi=150)
+plt.show()
+
+best = int(np.argmin(cv_mean))
+print("Lowest mean CV error at C =", C_cv[best], "with MSE", cv_mean[best])
+#table
+for C, m, s in zip(C_cv, cv_mean, cv_std):
+    print(f"C={C:8.2f}  mean MSE={m:.4f}  std={s:.4f}")
+
+#part ii(b)
+print("ii(b)")
+print("only in report")
+
+#part ii(c) repeat for Ridge regression
+print("ii(c)")
+
+C_cv_ridge = np.logspace(-4, 3, 25) #0.0001 to 1000
+ridge_mean, ridge_std = [], []
+for C in C_cv_ridge:
+    model = Ridge(alpha=1 / (2 * C))
+    scores = cross_val_score(model, X_poly, y, cv=kf, scoring='neg_mean_squared_error')
+    mse = -scores
+    ridge_mean.append(mse.mean())
+    ridge_std.append(mse.std())
+
+plt.figure(figsize=(8, 6))
+plt.errorbar(C_cv_ridge, ridge_mean, yerr=ridge_std, fmt='o-', capsize=4)
+plt.xscale('log')
+plt.xlabel("C")
+plt.ylabel("mean square error (5-fold CV)")
+plt.title("ii(c): Ridge: cross-validated error vs C")
+plt.savefig("ii_c_ridge_cv.png", dpi=150)
+plt.show()
+
+best = int(np.argmin(ridge_mean))
+print("Lowest mean CV error at C =", C_cv_ridge[best], "with MSE", ridge_mean[best])
+for C, m, s in zip(C_cv_ridge, ridge_mean, ridge_std):
+    print(f"C={C:10.4f}  mean MSE={m:.4f}  std={s:.4f}")
