@@ -1,5 +1,7 @@
 import numpy as np
 import string
+import matplotlib.pyplot as plt
+
 
 class GridWorld:
     def __init__(self, rows=5, cols=4, start_state=(1, 1), goal_state=(3, 2)):
@@ -63,10 +65,12 @@ def train(env, num_eps, alpha, gamma, epsilon, max_steps):
     num_states = env.rows * env.cols
     num_actions = len(env.moves)
     Q = np.zeros((num_states, num_actions))
+    ep_rewards = []
 
     for ep in range(num_eps):
         state = env.reset()
         s = env.state_to_index(state)
+        total_reward = 0
 
         for step in range(max_steps):
             a = choose_action(Q, s, epsilon, num_actions)
@@ -76,12 +80,14 @@ def train(env, num_eps, alpha, gamma, epsilon, max_steps):
             update_Q(Q, s, a, r, s_next, alpha, gamma)
 
             s = s_next
+            total_reward += r
 
             if done:
                 break
 
-    return Q
+        ep_rewards.append(total_reward)
 
+    return Q, ep_rewards
 
 env = GridWorld()
 
@@ -118,8 +124,7 @@ update_Q(Q2, s, a, r, s_next, alpha=0.5, gamma=1.0)
 print(Q2[s, a]) #should print -0.5, half the full update
 
 #check training
-Q_trained = train(env, num_eps=1000, alpha=0.1, gamma=0.9, epsilon=0.1, max_steps=100)
-
+Q_trained, rewards = train(env, num_eps=150, alpha=0.1, gamma=0.95, epsilon=0.1, max_steps=100)
 #make letter list for readability
 letters = string.ascii_uppercase[:len(Q_trained)]
 
@@ -140,6 +145,17 @@ for r in range(env.rows):
         else:
             row_str += f" {label}:{action_symbols[policy[s]]} "
     print(row_str)
+
+window = 10
+moving_avg = np.convolve(rewards, np.ones(window) / window, mode='valid')
+
+plt.figure(figsize=(8, 4))
+plt.plot(rewards, color='tab:blue', alpha=0.6, label='Reward per episode')
+plt.plot(range(window - 1, len(rewards)), moving_avg, color='tab:orange', label=f'{window}-episode average')
+plt.xlabel('Episode')
+plt.ylabel('Total Reward')
+plt.legend()
+plt.show()
 
 #--------------TEST BASIC ENV------------------
 #print(env.reset())
