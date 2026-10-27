@@ -1,5 +1,19 @@
 import gymnasium as gym
 import numpy as np
+import matplotlib.pyplot as plt
+
+#Why use discretization? 
+    #Cart pole gives 4 cont. measurements, and divide these into bins 
+    #to represent states in a finite Qtable
+#Q-update?
+    #after each action, adjust Q val using reward recieved and estimated future reward
+    #alpha controls how much estimate changes
+    #gamma controls how much future rewards matter
+    #on failure, target is just reward  
+#epsilon decrease?
+    #early on, try random actions to get an idea
+    #later reduce to chose learned best more often (more exploiting)
+    #small min to continue exploration as well
 
 
 bins = (6, 12, 12, 12)
@@ -116,3 +130,45 @@ for episode in range(number_of_episodes):
 
 env.close()
 
+#new env to displays the cart and pole.
+env = gym.make("CartPole-v1", render_mode="human")
+
+#watch for three eps
+for episode in range(3):
+    state, info = env.reset()
+    discrete_state = discretize(state)
+
+    total_reward = 0
+    episode_over = False
+
+    while not episode_over:
+        #epsilon=0 means use the learned policy without exploration
+        action = choose_action(discrete_state, epsilon=0.0)
+
+        next_state, reward, terminated, truncated, info = env.step(action)
+
+        discrete_state = discretize(next_state)
+        total_reward += reward
+        episode_over = terminated or truncated
+
+    print(f"Visual episode {episode + 1}: reward = {total_reward}")
+
+env.close()
+#plot reward graph
+#avg rewards by 100 episodes
+average_rewards = [
+    np.mean(episode_rewards[i:i + 100])
+    for i in range(0, len(episode_rewards), 100)
+]
+
+episode_numbers = [
+    min(i + 100, len(episode_rewards))
+    for i in range(0, len(episode_rewards), 100)
+]
+
+plt.plot(episode_numbers, average_rewards)
+plt.xlabel("Training episode")
+plt.ylabel("Average reward per 100 episodes")
+plt.title("CartPole Q-learning progress")
+plt.grid(True)
+plt.show()
