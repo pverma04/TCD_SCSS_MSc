@@ -47,34 +47,46 @@ q_table = np.zeros(bins + (number_of_actions,))
 #print("Action values for this state:", q_table[discrete_state])
 
 epsilon = 1.0
-action = choose_action(discrete_state, epsilon)
-#print("Chosen action:", action)
 alpha = 0.1 #learning rate
 gamma = 0.99 #discount factor
 
-#apply action.
-next_state, reward, terminated, truncated, info = env.step(action)
+total_reward = 0
+episode_over = False
 
-#convert to index
-next_discrete_state = discretize(next_state)
+while not episode_over:
+    action = choose_action(discrete_state, epsilon)
+    #print("Chosen action:", action)
 
-#current estimate
-current_q = q_table[discrete_state + (action,)]
+    #apply action.
+    next_state, reward, terminated, truncated, info = env.step(action)
 
-#calculate target value
-if terminated:
-    target = reward
-else:
-    best_next_q = np.max(q_table[next_discrete_state])
-    target = reward + gamma * best_next_q
+    #convert to index
+    next_discrete_state = discretize(next_state)
 
-#move current estimate towards target
-new_q = current_q + alpha * (target - current_q)
-q_table[discrete_state + (action,)] = new_q
+    #current estimate
+    current_q = q_table[discrete_state + (action,)]
 
-print("Reward:", reward)
-print("Old Q-value:", current_q)
-print("New Q-value:", new_q)
+    #calculate target value
+    if terminated:
+        target = reward
+    else:
+        best_next_q = np.max(q_table[next_discrete_state])
+        target = reward + gamma * best_next_q
 
-#new state for next
-discrete_state = next_discrete_state
+    #move current estimate towards target
+    new_q = current_q + alpha * (target - current_q)
+    q_table[discrete_state + (action,)] = new_q
+
+    print("Reward:", reward)
+    print("Old Q-value:", current_q)
+    print("New Q-value:", new_q)
+
+    #new state for next
+    discrete_state = next_discrete_state
+
+    total_reward += reward
+    episode_over = terminated or truncated
+
+print("Episode reward:", total_reward)
+
+env.close()
