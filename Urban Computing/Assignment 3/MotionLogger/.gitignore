@@ -1,0 +1,32 @@
+.DS_Store
+DerivedData/
+xcuserdata/
+*.xcuserstate
+
+# Local Firebase configuration and credentials
+GoogleService-Info.plist
+google-services.json
+.env
+.env.*
+!.env.example
+*firebase-adminsdk*.json
+*service-account*.json
+serviceAccountKey.json
+*.p8
+*.p12
+*.mobileprovision
+
+# Personal recordings and exports
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+Exports/
+*.csv
+*.gpx
+
+# Local tools and generated files
+node_modules/
+.firebase/
+*-debug.log
+.Rhistory

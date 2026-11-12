@@ -16,10 +16,13 @@ import matplotlib.pyplot as plt
     #small min to continue exploration as well
 
 
-bins = (6, 12, 12, 12)
+#bins = (6, 12, 12, 12)
+bins = (1, 1, 6, 12) #or (3, 3, 6, 6)
 #discretization bounds
-lower_bounds = np.array([-2.4, -3.0, -0.20944, -3.5])
-upper_bounds = np.array([2.4, 3.0, 0.20944, 3.5])
+#lower_bounds = np.array([-2.4, -3.0, -0.20944, -3.5])
+lower_bounds = [-2.4, -2.0, -0.21, -2.0] #tighter bounds
+#upper_bounds = np.array([2.4, 3.0, 0.20944, 3.5])
+upper_bounds = [2.4, 2.0, 0.21, 2.0]
 
 #boundaries
 bin_edges = [
@@ -44,92 +47,53 @@ def choose_action(discrete_state, epsilon):
     return int(np.random.choice(best_actions))
 
 
-env = gym.make("CartPole-v1")
-
-state, info = env.reset(seed=42)
-discrete_state = discretize(state)
-
-print("Original state:", state)
-print("Discrete state:", discrete_state)
-
-
 number_of_actions = 2
-
-q_table = np.zeros(bins + (number_of_actions,))
-
-#print("Q-table shape:", q_table.shape)
-#print("Action values for this state:", q_table[discrete_state])
-
-epsilon = 1.0
-alpha = 0.1 #learning rate
-gamma = 0.99 #discount factor
-
-#number_of_episodes = 20000
-number_of_episodes = 1000
+gamma = 0.99
 epsilon_min = 0.02
 
-#record total reward from each episode
-episode_rewards = []
+def train_cartpole(number_of_episodes=5000):
+    global env, q_table              # choose_action() reads these globals
 
-for episode in range(number_of_episodes):
-    #start each with a fresh state
-    state, info = env.reset(seed=42 if episode == 0 else None)
-    discrete_state = discretize(state)
+    env = gym.make("CartPole-v1")
+    q_table = np.zeros(bins + (number_of_actions,))   # fresh table each run
+    episode_rewards = []
 
-    #gradually reduce exploration over the first 80% of training
-    epsilon = max(
-        epsilon_min,
-        1.0 - episode / (0.8 * number_of_episodes)
-    )
+    for episode in range(number_of_episodes):
+        state, info = env.reset()                      # no seed, so runs differ
+        discrete_state = discretize(state)
 
-    total_reward = 0
-    episode_over = False
+        epsilon = max(epsilon_min, 1.0 - episode / (0.5 * number_of_episodes))
+        alpha = max(0.02, 0.2 * (1 - episode / number_of_episodes))
 
-    while not episode_over:
-        action = choose_action(discrete_state, epsilon)
-        #print("Chosen action:", action)
+        total_reward = 0
+        episode_over = False
 
-        #apply action.
-        next_state, reward, terminated, truncated, info = env.step(action)
+        while not episode_over:
+            action = choose_action(discrete_state, epsilon)
+            next_state, reward, terminated, truncated, info = env.step(action)
+            next_discrete_state = discretize(next_state)
 
-        #convert to index
-        next_discrete_state = discretize(next_state)
+            current_q = q_table[discrete_state + (action,)]
+            if terminated:
+                target = reward
+            else:
+                target = reward + gamma * np.max(q_table[next_discrete_state])
+            q_table[discrete_state + (action,)] = current_q + alpha * (target - current_q)
 
-        #current estimate
-        current_q = q_table[discrete_state + (action,)]
+            discrete_state = next_discrete_state
+            total_reward += reward
+            episode_over = terminated or truncated
 
-        #calculate target value
-        if terminated:
-            target = reward
-        else:
-            best_next_q = np.max(q_table[next_discrete_state])
-            target = reward + gamma * best_next_q
+        episode_rewards.append(total_reward)
 
-        #move current estimate towards target
-        new_q = current_q + alpha * (target - current_q)
-        q_table[discrete_state + (action,)] = new_q
+    env.close()
+    return episode_rewards
 
-        #new state for next
-        discrete_state = next_discrete_state
-
-        total_reward += reward
-        episode_over = terminated or truncated
-
-    episode_rewards.append(total_reward)
-
-    # Print progress every 500 episodes.
-    #if (episode + 1) % 500 == 0:
-    if (episode + 1) % 100 == 0:
-        average_reward = np.mean(episode_rewards[-100:])
-
-        print(
-            f"Episode: {episode + 1}, "
-            f"Average reward (last 100): {average_reward:.1f}, "
-            f"Epsilon: {epsilon:.3f}"
-        )
-
-env.close()
-
+n_runs = 5
+all_runs = []
+for run in range(n_runs):
+    all_runs.append(train_cartpole(5000))
+    print(f"Finished run {run + 1}/{n_runs}, final 100-episode avg: {np.mean(all_runs[-1][-100:]):.1f}")
 #new env to displays the cart and pole.
 env = gym.make("CartPole-v1", render_mode="human")
 
@@ -156,7 +120,7 @@ for episode in range(3):
 env.close()
 #plot reward graph
 #avg rewards by 100 episodes
-average_rewards = [
+'''average_rewards = [
     np.mean(episode_rewards[i:i + 100])
     for i in range(0, len(episode_rewards), 100)
 ]
@@ -164,11 +128,22 @@ average_rewards = [
 episode_numbers = [
     min(i + 100, len(episode_rewards))
     for i in range(0, len(episode_rewards), 100)
-]
+]'''
+window = 100
+rolling_runs = np.array([
+    np.convolve(run, np.ones(window) / window, mode='valid')
+    for run in all_runs
+])
 
-plt.plot(episode_numbers, average_rewards)
+mean = rolling_runs.mean(axis=0)
+std = rolling_runs.std(axis=0)
+x = np.arange(window, window + len(mean))
+
+plt.plot(x, mean, label=f"Mean of {n_runs} runs")
+plt.fill_between(x, mean - std, mean + std, alpha=0.2, label="±1 std")
 plt.xlabel("Training episode")
-plt.ylabel("Average reward per 100 episodes")
+plt.ylabel("Reward (100-episode rolling average)")
 plt.title("CartPole Q-learning progress")
+plt.legend()
 plt.grid(True)
 plt.show()

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1000" viewBox="0 0 1400 1000"><rect width="100%" height="100%" fill="white"/><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#397CA5"/></marker></defs>
+<rect x="40" y="100" width="1320" height="120" rx="10" fill="#FFF8EA" stroke="#C3A66B" stroke-width="2"/>
+<text x="700.0" y="141.0" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#17364A">MET EIREANN - EXTERNAL OPEN-DATA PROVIDER</text>
+<text x="700.0" y="165.0" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Dublin Airport observations: hourly source measurements</text>
+<text x="700.0" y="189.0" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">https://prodapi.met.ie/observations/dublin/today</text>
+<rect x="40" y="280" width="720" height="530" rx="10" fill="#F1F6FA" stroke="#9FB8C9" stroke-width="2"/>
+<rect x="810" y="280" width="550" height="530" rx="10" fill="#F0F7F4" stroke="#9ABBAA" stroke-width="2"/>
+<rect x="75" y="355" width="255" height="125" rx="10" fill="#FFFFFF" stroke="#397CA5" stroke-width="2"/>
+<text x="202.5" y="386.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#17364A">Weather collector</text>
+<text x="202.5" y="410.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Checks API every 60 seconds</text>
+<text x="202.5" y="434.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">While app is open and online</text>
+<text x="202.5" y="458.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Receives current-day JSON</text>
+<rect x="395" y="355" width="325" height="125" rx="10" fill="#FFFFFF" stroke="#397CA5" stroke-width="2"/>
+<text x="557.5" y="386.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#17364A">Parse and normalize</text>
+<text x="557.5" y="410.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Convert valid local times to UTC</text>
+<text x="557.5" y="434.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Retain raw fields + source / licence</text>
+<text x="557.5" y="458.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">observedAt and fetchedAt</text>
+<rect x="395" y="565" width="325" height="125" rx="10" fill="#FFFFFF" stroke="#397CA5" stroke-width="2"/>
+<text x="557.5" y="596.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#17364A">SQLite + deduplication</text>
+<text x="557.5" y="620.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">One record per observation time</text>
+<text x="557.5" y="644.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Durable upload queue</text>
+<text x="557.5" y="668.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Retain pending records offline</text>
+<rect x="75" y="565" width="255" height="125" rx="10" fill="#FFFFFF" stroke="#397CA5" stroke-width="2"/>
+<text x="202.5" y="596.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#17364A">HTTPS uploader</text>
+<text x="202.5" y="620.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Checks queue about every second</text>
+<text x="202.5" y="644.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Firebase ID token</text>
+<text x="202.5" y="668.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Retry until acknowledged</text>
+<rect x="875" y="345" width="420" height="90" rx="10" fill="#FFFFFF" stroke="#49846A" stroke-width="2"/>
+<text x="1085.0" y="371.0" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#17364A">Firebase Authentication</text>
+<text x="1085.0" y="395.0" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Email/password sign-in</text>
+<text x="1085.0" y="419.0" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Issues Firebase ID tokens</text>
+<rect x="875" y="490" width="420" height="90" rx="10" fill="#FFFFFF" stroke="#49846A" stroke-width="2"/>
+<text x="1085.0" y="516.0" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#17364A">Realtime Database security rules</text>
+<text x="1085.0" y="540.0" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Require authenticated ownership</text>
+<text x="1085.0" y="564.0" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">auth.uid matches users/&lt;uid&gt;</text>
+<rect x="875" y="645" width="420" height="115" rx="10" fill="#FFFFFF" stroke="#49846A" stroke-width="2"/>
+<text x="1085.0" y="671.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#17364A">Firebase Realtime Database - JSON</text>
+<text x="1085.0" y="695.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">users/&lt;uid&gt;/weather/dublin-airport</text>
+<text x="1085.0" y="719.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">observations/&lt;observation-timestamp&gt;</text>
+<text x="1085.0" y="743.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="normal" fill="#17364A">Server receipt time: uploadedAt</text>
+<polyline points="180,220 180,250 55,250 55,410 75,410" fill="none" stroke="#397CA5" stroke-width="2"  marker-end="url(#arrow)"/>
+<text x="310" y="254" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#397CA5">HTTPS GET / JSON</text>
+<polyline points="330,415 395,415" fill="none" stroke="#397CA5" stroke-width="2"  marker-end="url(#arrow)"/>
+<polyline points="555,480 555,565" fill="none" stroke="#397CA5" stroke-width="2"  marker-end="url(#arrow)"/>
+<text x="650" y="526" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#397CA5">Queue new observations</text>
+<polyline points="395,625 330,625" fill="none" stroke="#397CA5" stroke-width="2"  marker-end="url(#arrow)"/>
+<polyline points="1085,435 1085,490" fill="none" stroke="#397CA5" stroke-width="2"  marker-end="url(#arrow)"/>
+<text x="1180" y="465" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#397CA5">Identity checked</text>
+<polyline points="330,665 350,665 350,765 840,765 840,535 875,535" fill="none" stroke="#397CA5" stroke-width="2"  marker-end="url(#arrow)"/>
+<text x="565" y="752" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#397CA5">HTTPS PUT + Firebase ID token</text>
+<polyline points="1085,580 1085,645" fill="none" stroke="#397CA5" stroke-width="2"  marker-end="url(#arrow)"/>
+<text x="1170" y="616" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#397CA5">Allowed write</text>
+<polyline points="1180,760 1180,860 200,860 200,690" fill="none" stroke="#54876C" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+<text x="700" y="890" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#54876C">Successful response: remove acknowledged records from the queue</text>
+<text x="40" y="46" text-anchor="start" font-family="Arial,sans-serif" font-size="28" font-weight="bold" fill="#17364A">Task 2 - Open weather data to Firebase</text>
+<text x="75" y="321" text-anchor="start" font-family="Arial,sans-serif" font-size="18" font-weight="bold" fill="#17364A">PHYSICAL IPHONE - FOREGROUND ONLY</text>
+<text x="835" y="321" text-anchor="start" font-family="Arial,sans-serif" font-size="18" font-weight="bold" fill="#244E3C">FIREBASE CLOUD - europe-west1 (Belgium)</text>
+<text x="700" y="956" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="normal" fill="#526875">Hourly source measurements; one-minute polling. Missing readings remain null; raw API fields are retained.</text>
+</svg>

@@ -158,6 +158,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = WN2HLNGQ4K;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = CommuteWalk;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Record your walking route and journey timing while a commute is running.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "Motion Logger records accelerometer samples when you tap Start.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -182,6 +184,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = WN2HLNGQ4K;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = CommuteWalk;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Record your walking route and journey timing while a commute is running.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "Motion Logger records accelerometer samples when you tap Start.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

@@ -1,0 +1,16 @@
+flowchart LR
+  subgraph PHONE[Physical iPhone - foreground only]
+    A[Accelerometer one sample every 5 s + GPS] --> B[SwiftUI commute recorder]
+    B --> C[(Local SQLite + durable outbox)]
+    C --> D[HTTPS uploader - ~1 second batches]
+    W[Weather collector - every 60 seconds] --> C
+  end
+  subgraph FIREBASE[Firebase - cloud]
+    AUTH[Email/password Authentication]
+    DB[(Realtime Database JSON - europe-west1 Belgium)]
+    RULES[Rules: auth.uid matches users/uid]
+    AUTH --> RULES
+    RULES --> DB
+  end
+  D -->|ID token + PUT + server receipt timestamp| RULES
+  MET[Met Eireann - hourly Dublin Airport observations] -->|HTTPS JSON| W

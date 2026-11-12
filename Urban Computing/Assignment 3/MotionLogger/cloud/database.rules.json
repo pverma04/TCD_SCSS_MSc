@@ -1,0 +1,96 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "journeys": {
+          "$journey": {
+            "metadata": {
+              ".write": "auth != null && auth.uid === $uid",
+              ".validate": "newData.hasChildren(['route','startedAt','completed','distanceMeters','locationCount','station','schemaVersion','uploadedAt'])",
+              "route": {
+                ".validate": "newData.val() === 'To college' || newData.val() === 'Return home'"
+              },
+              "startedAt": {
+                ".validate": "newData.isNumber() && newData.val() > 0"
+              },
+              "endedAt": {
+                ".validate": "newData.isNumber() && newData.val() >= newData.parent().child('startedAt').val()"
+              },
+              "completed": {
+                ".validate": "newData.isBoolean()"
+              },
+              "distanceMeters": {
+                ".validate": "newData.isNumber() && newData.val() >= 0"
+              },
+              "locationCount": {
+                ".validate": "newData.isNumber() && newData.val() >= 0"
+              },
+              "station": {
+                ".validate": "newData.val() === 'dublin-airport'"
+              },
+              "schemaVersion": {
+                ".validate": "newData.val() === 1"
+              },
+              "uploadedAt": {
+                ".validate": "newData.isNumber() && newData.val() <= now"
+              },
+              "$other": {
+                ".validate": false
+              }
+            },
+            "chunks": {
+              "$chunk": {
+                ".write": "auth != null && auth.uid === $uid",
+                ".validate": "newData.hasChildren(['capturedAt','uploadedAt'])",
+                "capturedAt": {
+                  ".validate": "newData.isNumber()"
+                },
+                "uploadedAt": {
+                  ".validate": "newData.isNumber() && newData.val() <= now"
+                },
+                "motion": {
+                  "$sample": {
+                    ".validate": "newData.hasChildren(['timestamp','uptime','x','y','z'])",
+                    "$field": {
+                      ".validate": "newData.isNumber()"
+                    }
+                  }
+                },
+                "locations": {
+                  "$point": {
+                    ".validate": "newData.hasChildren(['timestamp','latitude','longitude','accuracy'])",
+                    "latitude": {
+                      ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+                    },
+                    "longitude": {
+                      ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+                    },
+                    "$field": {
+                      ".validate": "newData.isNumber()"
+                    }
+                  }
+                },
+                "$other": {
+                  ".validate": false
+                }
+              }
+            }
+          }
+        },
+        "weather": {
+          "dublin-airport": {
+            "observations": {
+              "$observation": {
+                ".write": "auth != null && auth.uid === $uid",
+                ".validate": "newData.hasChildren(['id','station','observedAt','fetchedAt','sourceURL','source','licence','description','uploadedAt']) && newData.child('station').val() === 'dublin-airport' && newData.child('observedAt').isNumber() && newData.child('observedAt').val() > 0 && newData.child('observedAt').val() <= now + 300000 && newData.child('fetchedAt').isNumber() && newData.child('uploadedAt').isNumber() && newData.child('uploadedAt').val() <= now && newData.child('sourceURL').val() === 'https://prodapi.met.ie/observations/dublin/today'"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
