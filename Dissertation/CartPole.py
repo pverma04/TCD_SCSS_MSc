@@ -50,13 +50,16 @@ def choose_action(q_table, discrete_state, epsilon, env):
     best = np.flatnonzero(values == values.max())
     return int(np.random.choice(best))
 
-def train_cartpole(number_of_episodes=5000):
+def train_cartpole(number_of_episodes=5000, seed=0):
+    np.random.seed(seed)                  # seeds epsilon checks + tie-breaking in choose_action
     env = gym.make("CartPole-v1")
+    env.action_space.seed(seed)           # seeds random exploration actions
     q_table = np.zeros(bins + (number_of_actions,))   # fresh table each run
     episode_rewards = []
 
     for episode in range(number_of_episodes):
-        state, info = env.reset()                      # no seed, so runs differ
+        # seed only the first reset; later resets continue the same random stream
+        state, info = env.reset(seed=seed if episode == 0 else None)
         discrete_state = discretize(state)
 
         epsilon = max(epsilon_min, 1.0 - episode / (0.5 * number_of_episodes))
@@ -91,7 +94,7 @@ all_runs = []
 results = []
 
 for run in range(n_runs):
-    rewards, q = train_cartpole(5000)
+    rewards, q = train_cartpole(5000, seed = run)
     results.append((rewards, q))
     print(f"Finished run {run + 1}/{n_runs}, final 100-episode avg: {np.mean(rewards[-100:]):.1f}")
 all_runs = [r[0] for r in results] #reward lists for plotting
