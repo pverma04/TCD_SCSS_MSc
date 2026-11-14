@@ -36,24 +36,21 @@ def discretize(state):
         for value, edges in zip(state, bin_edges)
     )
 
-def choose_action(discrete_state, epsilon):
-    if np.random.random() < epsilon:
-        #explore
-        return env.action_space.sample()
-    #exploit
-    action_values = q_table[discrete_state]
-    #random select if equal benefit
-    best_actions = np.flatnonzero(action_values == action_values.max())
-    return int(np.random.choice(best_actions))
-
 
 number_of_actions = 2
 gamma = 0.99
 epsilon_min = 0.02
 
-def train_cartpole(number_of_episodes=5000):
-    global env, q_table              # choose_action() reads these globals
+#new choose_action, takes q_table as parameter instead of using the last one (was a global variable) 
+# allows keeping all 5 runs
+def choose_action(q_table, discrete_state, epsilon, env):
+    if np.random.random() < epsilon:
+        return env.action_space.sample()
+    values = q_table[discrete_state]
+    best = np.flatnonzero(values == values.max())
+    return int(np.random.choice(best))
 
+def train_cartpole(number_of_episodes=5000):
     env = gym.make("CartPole-v1")
     q_table = np.zeros(bins + (number_of_actions,))   # fresh table each run
     episode_rewards = []
@@ -69,7 +66,7 @@ def train_cartpole(number_of_episodes=5000):
         episode_over = False
 
         while not episode_over:
-            action = choose_action(discrete_state, epsilon)
+            action = choose_action(q_table, discrete_state, epsilon, env)
             next_state, reward, terminated, truncated, info = env.step(action)
             next_discrete_state = discretize(next_state)
 
@@ -87,15 +84,21 @@ def train_cartpole(number_of_episodes=5000):
         episode_rewards.append(total_reward)
 
     env.close()
-    return episode_rewards
+    return episode_rewards, q_table
 
 n_runs = 5
 all_runs = []
+results = []
+
 for run in range(n_runs):
-    all_runs.append(train_cartpole(5000))
-    print(f"Finished run {run + 1}/{n_runs}, final 100-episode avg: {np.mean(all_runs[-1][-100:]):.1f}")
-#new env to displays the cart and pole.
-env = gym.make("CartPole-v1", render_mode="human")
+    rewards, q = train_cartpole(5000)
+    results.append((rewards, q))
+    print(f"Finished run {run + 1}/{n_runs}, final 100-episode avg: {np.mean(rewards[-100:]):.1f}")
+all_runs = [r[0] for r in results] #reward lists for plotting
+best_q = max(results, key=lambda r: np.mean(r[0][-100:]))[1] #best run's Q table
+
+env = gym.make("CartPole-v1", render_mode="human") #new env to displays the cart and pole.
+
 
 #watch for three eps
 for episode in range(3):
@@ -107,7 +110,7 @@ for episode in range(3):
 
     while not episode_over:
         #epsilon=0 means use the learned policy without exploration
-        action = choose_action(discrete_state, epsilon=0.0)
+        action = choose_action(best_q, discrete_state, epsilon=0.0, env=env)
 
         next_state, reward, terminated, truncated, info = env.step(action)
 
@@ -118,17 +121,7 @@ for episode in range(3):
     print(f"Visual episode {episode + 1}: reward = {total_reward}")
 
 env.close()
-#plot reward graph
-#avg rewards by 100 episodes
-'''average_rewards = [
-    np.mean(episode_rewards[i:i + 100])
-    for i in range(0, len(episode_rewards), 100)
-]
 
-episode_numbers = [
-    min(i + 100, len(episode_rewards))
-    for i in range(0, len(episode_rewards), 100)
-]'''
 window = 100
 rolling_runs = np.array([
     np.convolve(run, np.ones(window) / window, mode='valid')
