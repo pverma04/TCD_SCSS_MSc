@@ -2,6 +2,13 @@ import gymnasium as gym
 import numpy as np
 import matplotlib.pyplot as plt
 
+#Updates
+# - Removed global variables, so the demo uses the best table saved, not the most recent
+# - Seeding: Each run starst from a fixed seed so runs can be reproduced (for debugging)
+# - Greedy evaluation: Training avg includes 2% random. evaluate() tests each table with no exploration and no learning, 
+#   on 100 start states it never trained on. 
+#   This measures the policy itself, and it’s what is used to pick the best table.
+
 #Why use discretization? 
     #Cart pole gives 4 cont. measurements, and divide these into bins 
     #to represent states in a finite Qtable
@@ -15,31 +22,12 @@ import matplotlib.pyplot as plt
     #later reduce to chose learned best more often (more exploiting)
     #small min to continue exploration as well
 
-
-#bins = (6, 12, 12, 12)
-bins = (1, 1, 6, 12) #or (3, 3, 6, 6)
-#discretization bounds
-#lower_bounds = np.array([-2.4, -3.0, -0.20944, -3.5])
-lower_bounds = [-2.4, -2.0, -0.21, -2.0] #tighter bounds
-#upper_bounds = np.array([2.4, 3.0, 0.20944, 3.5])
-upper_bounds = [2.4, 2.0, 0.21, 2.0]
-
-#boundaries
-bin_edges = [
-    np.linspace(low, high, count + 1)[1:-1]
-    for low, high, count in zip(lower_bounds, upper_bounds, bins)
-]
-
 def discretize(state):
     return tuple(
         int(np.digitize(value, edges))
         for value, edges in zip(state, bin_edges)
     )
 
-
-number_of_actions = 2
-gamma = 0.99
-epsilon_min = 0.02
 
 #new choose_action, takes q_table as parameter instead of using the last one (was a global variable) 
 # allows keeping all 5 runs
@@ -89,16 +77,61 @@ def train_cartpole(number_of_episodes=5000, seed=0):
     env.close()
     return episode_rewards, q_table
 
-n_runs = 5
-all_runs = []
-results = []
 
+def evaluate(q_table, n_episodes=100, seed=10_000):
+    # test the learned policy: no exploration (epsilon=0), no Q-updates
+    env = gym.make("CartPole-v1")
+    rewards = []
+    for i in range(n_episodes):
+        state, info = env.reset(seed=seed + i)    # same 100 start states for every table
+        discrete_state = discretize(state)
+        total_reward = 0
+        episode_over = False
+        while not episode_over:
+            action = choose_action(q_table, discrete_state, 0.0, env)
+            state, reward, terminated, truncated, info = env.step(action)
+            discrete_state = discretize(state)
+            total_reward += reward
+            episode_over = terminated or truncated
+        rewards.append(total_reward)
+    env.close()
+    return np.mean(rewards), np.std(rewards)
+
+
+
+#bins = (6, 12, 12, 12)
+bins = (1, 1, 6, 12) #or (3, 3, 6, 6)
+#discretization bounds
+#lower_bounds = np.array([-2.4, -3.0, -0.20944, -3.5])
+lower_bounds = [-2.4, -2.0, -0.21, -2.0] #tighter bounds
+#upper_bounds = np.array([2.4, 3.0, 0.20944, 3.5])
+upper_bounds = [2.4, 2.0, 0.21, 2.0]
+
+#boundaries
+bin_edges = [
+    np.linspace(low, high, count + 1)[1:-1]
+    for low, high, count in zip(lower_bounds, upper_bounds, bins)
+]
+
+
+number_of_actions = 2
+gamma = 0.99
+epsilon_min = 0.02
+
+n_runs = 5
+results = []
 for run in range(n_runs):
-    rewards, q = train_cartpole(5000, seed = run)
-    results.append((rewards, q))
-    print(f"Finished run {run + 1}/{n_runs}, final 100-episode avg: {np.mean(rewards[-100:]):.1f}")
-all_runs = [r[0] for r in results] #reward lists for plotting
-best_q = max(results, key=lambda r: np.mean(r[0][-100:]))[1] #best run's Q table
+    rewards, q = train_cartpole(5000, seed=run)
+    eval_mean, eval_std = evaluate(q)
+    results.append((rewards, q, eval_mean))
+    print(f"Run {run + 1}/{n_runs} | train last-100 avg: {np.mean(rewards[-100:]):.1f} "
+          f"| greedy eval: {eval_mean:.1f} ± {eval_std:.1f}")
+
+all_runs = [r[0] for r in results]
+best_q = max(results, key=lambda r: r[2])[1]     # best by greedy eval
+eval_means = [r[2] for r in results]
+print(f"\nGreedy eval across runs: {np.mean(eval_means):.1f} ± {np.std(eval_means):.1f}")
+
 
 env = gym.make("CartPole-v1", render_mode="human") #new env to displays the cart and pole.
 
@@ -136,7 +169,7 @@ std = rolling_runs.std(axis=0)
 x = np.arange(window, window + len(mean))
 
 plt.plot(x, mean, label=f"Mean of {n_runs} runs")
-plt.fill_between(x, mean - std, mean + std, alpha=0.2, label="±1 std")
+plt.fill_between(x, np.clip(mean - std, 0, 500), np.clip(mean + std, 0, 500), alpha=0.2, label="±1 std")
 plt.xlabel("Training episode")
 plt.ylabel("Reward (100-episode rolling average)")
 plt.title("CartPole Q-learning progress")
