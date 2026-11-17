@@ -1,48 +1,107 @@
 import gymnasium as gym
 import numpy as np
-import matplotlib
-matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
-import faulthandler
-faulthandler.enable()
 
+
+#updates
+# - episodes 1000 -> 5000
+# - epsilon decays to min by 10% of training (was 80%): random actions can't
+#   build momentum; zero-initialized Q-table explores via optimism
+# - alpha decays 0.1 -> 0.01 to stop late overwrites of a good policy
+# - keep best Q-table: greedy check every 250 eps (20 eps, seeds 20000+)
+# - no globals; seeded train function; greedy evaluate() on seeds 10000+
+# - 5 seeds, mean ± std plot, demo uses best run's table
+#
+#results (5 seeds, 5000 eps): goal rate 100% all seeds, reward -142.6 ± 4.2
 
 def discretize(state):
     return tuple(
         int(np.digitize(value, edges))
         for value, edges in zip(state, bin_edges)
     )
-def choose_action(discrete_state, epsilon):
+
+def choose_action(q_table, discrete_state, epsilon, env):
     if np.random.random() < epsilon:
-        #explore
-        return env.action_space.sample()
+        return env.action_space.sample() # explore
+    values = q_table[discrete_state] # exploit
+    best = np.flatnonzero(values == values.max())
+    return int(np.random.choice(best)) # random tie-break
 
-    #exploit
-    action_values = q_table[discrete_state]
+def train_mountaincar(number_of_episodes=5000, seed=0):
+    np.random.seed(seed)
+    env = gym.make("MountainCar-v0")
+    env.action_space.seed(seed)
+    q_table = np.zeros(bins + (number_of_actions,))   #fresh table each run
+    episode_rewards = []
+    episode_successes = []
 
-    #random select if equal benefit
-    best_actions = np.flatnonzero(action_values == action_values.max())
-    return int(np.random.choice(best_actions))
+    best_q = q_table.copy()
+    best_score = -np.inf
+    for episode in range(number_of_episodes):
+        state, info = env.reset(seed=seed if episode == 0 else None)
+        discrete_state = discretize(state)
 
+        epsilon = max(epsilon_min, 1.0 - episode / (0.1 * number_of_episodes))
+        alpha = max(0.01, 0.1 * (1 - episode / number_of_episodes))
 
-env = gym.make("MountainCar-v0")
+        total_reward = 0
+        episode_over = False
 
-state, info = env.reset(seed=42)
+        while not episode_over:
+            action = choose_action(q_table, discrete_state, epsilon, env)
+            next_state, reward, terminated, truncated, info = env.step(action)
+            next_discrete_state = discretize(next_state)
 
-#print("Original state:", state)
-#print("Position:", state[0])
-#print("Velocity:", state[1])
-#print("Action space:", env.action_space)
-#print("Lower bounds:", env.observation_space.low)
-#print("Upper bounds:", env.observation_space.high)
+            current_q = q_table[discrete_state + (action,)]
+            if terminated:
+                target = reward
+            else:
+                target = reward + gamma * np.max(q_table[next_discrete_state])
+            q_table[discrete_state + (action,)] = current_q + alpha * (target - current_q)
 
+            discrete_state = next_discrete_state
+            total_reward += reward
+            episode_over = terminated or truncated
+
+        episode_rewards.append(total_reward)
+        episode_successes.append(terminated)
+        if (episode + 1) % 250 == 0:
+            score, _ = evaluate(q_table, n_episodes = 20, seed = 20000)
+            if score > best_score:
+                best_score, best_q = score, q_table.copy()
+
+    env.close()
+    return episode_rewards, episode_successes, best_q
+
+def evaluate(q_table, n_episodes=100, seed=10_000):
+    # test the learned policy: no exploration, no Q-updates
+    env = gym.make("MountainCar-v0")
+    rewards, successes = [], []
+    for i in range(n_episodes):
+        state, info = env.reset(seed=seed + i)    #same 100 starts for every table
+        discrete_state = discretize(state)
+        total_reward = 0
+        episode_over = False
+        while not episode_over:
+            action = choose_action(q_table, discrete_state, 0.0, env)
+            state, reward, terminated, truncated, info = env.step(action)
+            discrete_state = discretize(state)
+            total_reward += reward
+            episode_over = terminated or truncated
+        rewards.append(total_reward)
+        successes.append(terminated)
+    env.close()
+    return np.mean(rewards), np.mean(successes)
 
 #num bins for position and velocity
 bins = (20, 20)
 
-#use env's actual observation bounds
-lower_bounds = env.observation_space.low
-upper_bounds = env.observation_space.high
+#get bounds + action count from a temporary env, then close it
+temp_env = gym.make("MountainCar-v0")
+lower_bounds = temp_env.observation_space.low
+upper_bounds = temp_env.observation_space.high
+number_of_actions = temp_env.action_space.n
+temp_env.close()
 
 #bin boundaries
 bin_edges = [
@@ -50,130 +109,60 @@ bin_edges = [
     for low, high, count in zip(lower_bounds, upper_bounds, bins)
 ]
 
-discrete_state = discretize(state)
-
-#one Q-value per state-action combination
-number_of_actions = env.action_space.n
-q_table = np.zeros(bins + (number_of_actions,))
-
-#print("Discrete state:", discrete_state)
-#print("Q-table shape:", q_table.shape)
-#print("Action values for this state:", q_table[discrete_state])
-
-epsilon = 1.0
-alpha = 0.1 #learning rate
-gamma = 0.99 #discount factor
-
-number_of_episodes = 1000
+gamma = 0.99        #discount factor
 epsilon_min = 0.02
 
-episode_rewards = []
-episode_successes = []
+#train + evaluate several seeds
+n_runs = 5
+results = []
+for run in range(n_runs):
+    rewards, successes, q = train_mountaincar(5000, seed=run)
+    eval_reward, eval_goal_rate = evaluate(q)
+    results.append((rewards, q, eval_reward, eval_goal_rate))
+    print(f"Run {run + 1}/{n_runs} | train goals (last 100): {sum(successes[-100:])} "
+          f"| greedy eval: reward {eval_reward:.1f}, goal rate {eval_goal_rate * 100:.0f}%")
 
-for episode in range(number_of_episodes):
-    #start a fresh episode
-    state, info = env.reset(seed=42 if episode == 0 else None)
-    discrete_state = discretize(state)
+all_runs = [r[0] for r in results]
+best_q = max(results, key=lambda r: r[2])[1]
+eval_rewards = [r[2] for r in results]
+eval_rates = [r[3] for r in results]
+print(f"\nGreedy eval across runs: reward {np.mean(eval_rewards):.1f} ± {np.std(eval_rewards):.1f}, "
+      f"goal rate {np.mean(eval_rates) * 100:.0f}% ± {np.std(eval_rates) * 100:.0f}%")
 
-    #gradually reduce exploration
-    epsilon = max(
-        epsilon_min,
-        1.0 - episode / (0.8 * number_of_episodes)
-    )
 
-    total_reward = 0
-    episode_over = False
-
-    while not episode_over:
-        action = choose_action(discrete_state, epsilon)
-
-        #apply action
-        next_state, reward, terminated, truncated, info = env.step(action)
-
-        #convert to index
-        next_discrete_state = discretize(next_state)
-
-        #current estimate
-        current_q = q_table[discrete_state + (action,)]
-
-        #calculate target value
-        if terminated:
-            target = reward
-        else:
-            best_next_q = np.max(q_table[next_discrete_state])
-            target = reward + gamma * best_next_q
-
-        #move current estimate towards target
-        new_q = current_q + alpha * (target - current_q)
-        q_table[discrete_state + (action,)] = new_q
-
-        #new state for next
-        discrete_state = next_discrete_state
-
-        total_reward += reward
-        episode_over = terminated or truncated
-
-    episode_rewards.append(total_reward)
-    episode_successes.append(terminated)
-
-    #show progress every 100 episodes
-    if (episode + 1) % 100 == 0:
-        average_reward = np.mean(episode_rewards[-100:])
-        goals_reached = sum(episode_successes[-100:])
-
-        print(
-            f"Episode: {episode + 1}, "
-            f"Average reward (last 100): {average_reward:.1f}, "
-            f"Goals reached (last 100): {goals_reached}, "
-            f"Epsilon: {epsilon:.3f}"
-        )
-
-env.close()
-
-#display the environment
+#display the best run's policy
 env = gym.make("MountainCar-v0", render_mode="human")
-
-for episode in range(5):
+for episode in range(3):
     state, info = env.reset()
     discrete_state = discretize(state)
-
     total_reward = 0
     episode_over = False
-
     while not episode_over:
-        #use learned values without exploration
-        action = choose_action(discrete_state, epsilon=0.0)
-
+        action = choose_action(best_q, discrete_state, 0.0, env)
         next_state, reward, terminated, truncated, info = env.step(action)
-
         discrete_state = discretize(next_state)
         total_reward += reward
         episode_over = terminated or truncated
-
-    print(
-        f"Visual episode {episode + 1}: "
-        f"reward = {total_reward}, "
-        f"reached goal = {terminated}"
-    )
-
+    print(f"Visual episode {episode + 1}: reward = {total_reward}, reached goal = {terminated}")
 env.close()
-#reward plot
-#average rewards in groups of 100 episodes
-average_rewards = [
-    np.mean(episode_rewards[i:i + 100])
-    for i in range(0, len(episode_rewards), 100)
-]
-episode_numbers = [
-    min(i + 100, len(episode_rewards))
-    for i in range(0, len(episode_rewards), 100)
-]
-plt.plot(episode_numbers, average_rewards)
+
+
+#reward plot: mean ± std across runs
+window = 100
+rolling_runs = np.array([
+    np.convolve(run, np.ones(window) / window, mode='valid')
+    for run in all_runs
+])
+mean = rolling_runs.mean(axis=0)
+std = rolling_runs.std(axis=0)
+x = np.arange(window, window + len(mean))
+
+plt.plot(x, mean, label=f"Mean of {n_runs} runs")
+plt.fill_between(x, np.clip(mean - std, -200, None), mean + std, alpha=0.2, label="±1 std")
 plt.xlabel("Training episode")
-plt.ylabel("Average reward per 100 episodes")
+plt.ylabel("Reward (100-episode rolling average)")
 plt.title("MountainCar Q-learning progress")
-plt.grid(True)
 plt.ylim(-205, -100)
-plt.savefig("mountaincar_progress.png", dpi=150, bbox_inches="tight")
-#plt.show()
-plt.close()
-#print("Graph saved as mountaincar_progress.png")
+plt.legend()
+plt.grid(True)
+plt.show()
