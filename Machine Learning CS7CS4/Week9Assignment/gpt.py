@@ -1,19 +1,23 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+import math
 
 # hyperparameters
 batch_size = 64 # how many independent sequences will we process in parallel?
-block_size = 256 # what is the maximum context length for predictions?
-max_iters = 5000
-eval_interval = 500
+block_size = 64 #256 # what is the maximum context length for predictions?
+max_iters = 1000 #5000
+eval_interval = 100 #500
 learning_rate = 3e-4
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-eval_iters = 200
-n_embd = 384
-n_head = 6
-n_layer = 6
+eval_iters = 50 #200 - faster loss estimates
+n_embd = 192 #96 #192 #128 #384
+n_head = 4 #6 - now gives headsize 32
+n_layer = 2 #8 #2 #4 #6
 dropout = 0.2
+
+attn_bias = False   # part i(d): bias in the key/query/value layers
+skip_connections = True # part i(e): residual connections, in each block
 # ------------
 
 torch.manual_seed(1337)
@@ -32,18 +36,18 @@ encode = lambda s: [stoi[c] for c in s] # encoder: take a string, output a list 
 decode = lambda l: ''.join([itos[i] for i in l]) # decoder: take a list of integers, output a string
 
 #----------part i(a): describe the datasets----------
-for fname in ['input_childSpeech_trainingSet.txt', 'input_childSpeech_testSet.txt', 'input_shakespeare.txt']:
-    with open(fname, 'r', encoding='utf-8') as f:
-        t = f.read()
-    print("---", fname, "---")
-    print("length (characters):", len(t))
-    print("vocabulary size:", len(set(t)))
-    print("characters:", repr(''.join(sorted(set(t)))))
-    print("lines:", len(t.splitlines()), "| unique lines:", len(set(t.splitlines())))
-    print("words:", len(t.split()), "| unique words:", len(set(t.split())))
-    print("first 5 lines:", t.splitlines()[:5])
-    print()
-exit()
+#for fname in ['input_childSpeech_trainingSet.txt', 'input_childSpeech_testSet.txt', 'input_shakespeare.txt']:
+ #   with open(fname, 'r', encoding='utf-8') as f:
+  #      t = f.read()
+   # print("---", fname, "---")
+    #print("length (characters):", len(t))
+    #print("vocabulary size:", len(set(t)))
+    #print("characters:", repr(''.join(sorted(set(t)))))
+    #print("lines:", len(t.splitlines()), "| unique lines:", len(set(t.splitlines())))
+    #print("words:", len(t.split()), "| unique words:", len(set(t.split())))
+    #print("first 5 lines:", t.splitlines()[:5])
+    #print()
+#exit()
 #------------
 
 # Train and test splits
@@ -81,9 +85,9 @@ class Head(nn.Module):
 
     def __init__(self, head_size):
         super().__init__()
-        self.key = nn.Linear(n_embd, head_size, bias=False)
-        self.query = nn.Linear(n_embd, head_size, bias=False)
-        self.value = nn.Linear(n_embd, head_size, bias=False)
+        self.key = nn.Linear(n_embd, head_size, bias=attn_bias)
+        self.query = nn.Linear(n_embd, head_size, bias=attn_bias)
+        self.value = nn.Linear(n_embd, head_size, bias=attn_bias)
         self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))
 
         self.dropout = nn.Dropout(dropout)
@@ -146,8 +150,12 @@ class Block(nn.Module):
         self.ln2 = nn.LayerNorm(n_embd)
 
     def forward(self, x):
-        x = x + self.sa(self.ln1(x))
-        x = x + self.ffwd(self.ln2(x))
+        if skip_connections:
+            x = x + self.sa(self.ln1(x))
+            x = x + self.ffwd(self.ln2(x))
+        else:
+            x = self.sa(self.ln1(x))
+            x = self.ffwd(self.ln2(x))
         return x
 
 class GPTLanguageModel(nn.Module):
@@ -238,3 +246,9 @@ for iter in range(max_iters):
 context = torch.zeros((1, 1), dtype=torch.long, device=device)
 print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
 #open('more.txt', 'w').write(decode(m.generate(context, max_new_tokens=10000)[0].tolist()))
+
+
+#-------PART II-------
+#part ii(a)
+print ("Part ii(a):")
+
