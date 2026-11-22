@@ -252,3 +252,39 @@ print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
 #part ii(a)
 print ("Part ii(a):")
 
+#loss over whole test file by block_size steps
+
+@torch.no_grad()
+def test_loss(filename):
+    with open(filename, 'r', encoding='utf-8') as f:
+        test_text = f.read()
+    kept = ''.join(c for c in test_text if c in stoi)
+    print(f"{filename}: removed {len(test_text) - len(kept)} of {len(test_text)} characters not in the training vocabulary")
+    test_data = torch.tensor(encode(kept), dtype=torch.long)
+    model.eval()
+    losses = []
+    for i in range(0, len(test_data) - block_size, block_size):
+        x = test_data[i:i+block_size].unsqueeze(0).to(device)
+        y = test_data[i+1:i+block_size+1].unsqueeze(0).to(device)
+        logits, loss = model(x, y)
+        losses.append(loss.item())
+    model.train()
+    return sum(losses) / len(losses)
+
+print("child speech test loss:", test_loss('input_childSpeech_testSet.txt'))
+
+#baselines
+print("Uniform baseline: ", -math.log(1/vocab_size))
+counts = torch.bincount(train_data, minlength=vocab_size).float()
+probs = counts / counts.sum()
+with open('input_childSpeech_testSet.txt', 'r', encoding='utf-8') as f:
+    test_ids = torch.tensor(encode(f.read()))
+print("Unigram baseline: ", -torch.log(probs[test_ids]).mean().item())
+
+#part ii(b)
+print("part ii(b)")
+print("shakespeare loss:", test_loss('input_shakespeare.txt'))
+with open('input_shakespeare.txt', 'r', encoding='utf-8') as f:
+    shakes_ids = torch.tensor(encode(''.join(c for c in f.read() if c in stoi)))
+print("Uniform baseline: ", -math.log(1/vocab_size))
+print("Unigram baseline: ", -torch.log(probs[shakes_ids]).mean().item())
